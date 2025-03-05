@@ -651,6 +651,22 @@
             color: var(--text-primary);
         }
         
+        /* 流式打字效果 */
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background-color: var(--primary-color);
+            margin-left: 2px;
+            animation: cursorBlink 0.8s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
         /* Markdown 样式增强 */
         .markdown-content {
             line-height: 1.7;
@@ -1534,21 +1550,64 @@ sequenceDiagram
                 // 清空输入框
                 chatInput.value = '';
                 
-                // 显示加载指示器
-                showLoadingIndicator();
-                
                 // 添加消息到历史记录
                 messages.push({ role: 'user', content: userMessage });
                 
-                // 调用 DeepSeek API
-                callDeepSeekAPI(messages);
+                // 准备接收流式响应
+                prepareForStreamedResponse();
+                
+                // 调用 DeepSeek API - 启用流式响应
+                callDeepSeekAPIWithStreaming(messages);
             }
             
-            // 调用 DeepSeek API
-            async function callDeepSeekAPI(messageHistory) {
+            // 为流式响应准备UI元素
+            function prepareForStreamedResponse() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const timeString = `${hours}:${minutes}`;
+                
+                // 创建新的助手消息容器
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message assistant-message';
+                messageDiv.id = 'current-assistant-message';
+                messageDiv.innerHTML = `
+                    <div class="message-avatar assistant-avatar">
+                        <i class="bi bi-cpu-fill"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="markdown-content" id="streaming-response"></div>
+                        <div class="message-time">${timeString}</div>
+                        <div class="message-actions">
+                            <button class="message-action-btn copy-btn" data-content="">
+                                <i class="bi bi-clipboard"></i> 复制
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+                
+                // 添加动画效果
+                setTimeout(() => {
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                }, 10);
+                
+                // 添加打字光标
+                const streamingResponse = document.getElementById('streaming-response');
+                streamingResponse.innerHTML = '<span class="typing-cursor"></span>';
+                
+                // 滚动到底部
+                scrollToBottom();
+                
+                // 设置处理状态
                 isProcessing = true;
                 sendButton.disabled = true;
-                
+            }
+            
+            // 流式调用 DeepSeek API
+            async function callDeepSeekAPIWithStreaming(messageHistory) {
                 try {
                     // 创建安全的系统消息，告知模型使用 Markdown 格式和 Mermaid 图表
                     const systemMessage = {
@@ -1606,7 +1665,7 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                     const requestBody = {
                         model: 'deepseek-chat',
                         messages: [systemMessage, ...safeMessages],
-                        stream: false
+                        stream: true
                     };
                     
                     // 发送请求
@@ -1624,29 +1683,78 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                         throw new Error(errorData.error?.message || '调用 API 失败');
                     }
                     
-                    const data = await response.json();
-                    const assistantMessage = data.choices[0].message.content;
+                    // 处理流式响应
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let fullResponse = '';
+                    let buffer = '';
                     
-                    // 移除加载指示器
-                    removeLoadingIndicator();
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        buffer += decoder.decode(value, { stream: true });
+                        
+                        // 处理缓冲区中的所有完整事件
+                        let lines = buffer.split('\n');
+                        buffer = lines.pop() || ''; // 保留最后一个不完整的行
+                        
+                        for (const line of lines) {
+                            if (line.trim() === '') continue;
+                            if (line.trim() === 'data: [DONE]') continue;
+                            
+                            try {
+                                // 解析事件数据
+                                if (line.startsWith('data: ')) {
+                                    const jsonData = JSON.parse(line.substring(6));
+                                    
+                                    if (jsonData.choices && jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
+                                        const textChunk = jsonData.choices[0].delta.content;
+                                        fullResponse += textChunk;
+                                        
+                                        // 更新UI中的文本
+                                        updateStreamingText(fullResponse);
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Stream parsing error:', error, line);
+                            }
+                        }
+                    }
                     
-                    // 添加助手消息到界面（使用 Markdown 渲染）
-                    addMessageToUI('assistant', assistantMessage, true);
+                    // 处理最后可能残留的数据
+                    if (buffer.trim() !== '') {
+                        try {
+                            if (buffer.startsWith('data: ') && buffer.trim() !== 'data: [DONE]') {
+                                const jsonData = JSON.parse(buffer.substring(6));
+                                
+                                if (jsonData.choices && jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
+                                    const textChunk = jsonData.choices[0].delta.content;
+                                    fullResponse += textChunk;
+                                    
+                                    // 更新UI中的文本
+                                    updateStreamingText(fullResponse);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Final buffer parsing error:', error, buffer);
+                        }
+                    }
+                    
+                    // 完成流式响应
+                    finishStreamedResponse(fullResponse);
                     
                     // 添加消息到历史记录
-                    messages.push({ role: 'assistant', content: assistantMessage });
-                    
-                    // 滚动到底部
-                    scrollToBottom();
+                    messages.push({ role: 'assistant', content: fullResponse });
                     
                 } catch (error) {
                     console.error('API 调用错误:', error);
                     
-                    // 移除加载指示器
-                    removeLoadingIndicator();
-                    
                     // 显示错误消息
-                    addMessageToUI('assistant', `⚠️ 出现错误: ${error.message}`);
+                    const streamingResponse = document.getElementById('streaming-response');
+                    if (streamingResponse) {
+                        streamingResponse.innerHTML = `⚠️ 出现错误: ${error.message}`;
+                    }
                     
                 } finally {
                     isProcessing = false;
@@ -1654,7 +1762,79 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                 }
             }
             
-            // 添加消息到界面（支持 Markdown 和 Mermaid）
+            // 更新流式文本
+            function updateStreamingText(text) {
+                const streamingResponse = document.getElementById('streaming-response');
+                if (streamingResponse) {
+                    // 解析Markdown
+                    streamingResponse.innerHTML = marked.parse(text) + '<span class="typing-cursor"></span>';
+                    
+                    // 更新复制按钮的数据
+                    const copyBtn = document.querySelector('#current-assistant-message .copy-btn');
+                    if (copyBtn) {
+                        copyBtn.setAttribute('data-content', text);
+                    }
+                    
+                    // 渲染任何Mermaid图表
+                    try {
+                        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                    } catch (error) {
+                        // 忽略Mermaid初始化错误，可能是不完整的图表
+                    }
+                    
+                    // 滚动到底部
+                    scrollToBottom();
+                }
+            }
+            
+            // 完成流式响应
+            function finishStreamedResponse(fullText) {
+                const streamingResponse = document.getElementById('streaming-response');
+                if (streamingResponse) {
+                    // 解析完整的Markdown
+                    streamingResponse.innerHTML = marked.parse(fullText);
+                    
+                    // 更新复制按钮的数据和事件
+                    const copyBtn = document.querySelector('#current-assistant-message .copy-btn');
+                    if (copyBtn) {
+                        copyBtn.setAttribute('data-content', fullText);
+                        
+                        // 添加复制功能
+                        copyBtn.addEventListener('click', function() {
+                            const content = this.getAttribute('data-content');
+                            navigator.clipboard.writeText(content)
+                                .then(() => {
+                                    // 成功复制后的反馈
+                                    copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> 已复制';
+                                    setTimeout(() => {
+                                        copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> 复制';
+                                    }, 2000);
+                                })
+                                .catch(err => {
+                                    console.error('复制失败:', err);
+                                });
+                        });
+                    }
+                    
+                    // 移除ID以便下一次流式响应
+                    const messageDiv = document.getElementById('current-assistant-message');
+                    if (messageDiv) {
+                        messageDiv.removeAttribute('id');
+                    }
+                    
+                    // 最终渲染Mermaid图表
+                    try {
+                        mermaid.init(undefined, document.querySelectorAll('.mermaid:not([data-processed="true"])'));
+                    } catch (error) {
+                        console.error("Mermaid final initialization error:", error);
+                    }
+                    
+                    // 滚动到底部
+                    scrollToBottom();
+                }
+            }
+            
+            // 添加消息到界面（不带流式输出）
             function addMessageToUI(role, content, isMarkdown = false) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${role}-message`;
@@ -1706,7 +1886,7 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                 // 渲染 Mermaid 图表
                 if (isMarkdown) {
                     try {
-                        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                        mermaid.init(undefined, document.querySelectorAll('.mermaid:not([data-processed="true"])'));
                     } catch (error) {
                         console.error("Mermaid initialization error:", error);
                     }
@@ -1745,24 +1925,6 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
-            }
-            
-            // 显示加载指示器
-            function showLoadingIndicator() {
-                const loadingDiv = document.createElement('div');
-                loadingDiv.className = 'loading-indicator';
-                loadingDiv.id = 'loading-indicator';
-                loadingDiv.innerHTML = '<div class="dot-typing"></div>';
-                chatMessages.appendChild(loadingDiv);
-                scrollToBottom();
-            }
-            
-            // 移除加载指示器
-            function removeLoadingIndicator() {
-                const loadingIndicator = document.getElementById('loading-indicator');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
-                }
             }
             
             // 滚动到底部
