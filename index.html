@@ -1744,7 +1744,7 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                     // 完成流式响应
                     finishStreamedResponse(fullResponse);
                     
-                    // 添加消息到历史记录
+                    // 添加消息到历史记录 - 修复历史记录问题
                     messages.push({ role: 'assistant', content: fullResponse });
                     
                 } catch (error) {
@@ -1777,7 +1777,7 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                     
                     // 渲染任何Mermaid图表
                     try {
-                        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                        mermaid.init(undefined, document.querySelectorAll('.mermaid:not([data-processed="true"])'));
                     } catch (error) {
                         // 忽略Mermaid初始化错误，可能是不完整的图表
                     }
@@ -1834,7 +1834,7 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                 }
             }
             
-            // 添加消息到界面（不带流式输出）
+            // 添加消息到界面（用于用户消息和非流式助手消息）
             function addMessageToUI(role, content, isMarkdown = false) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${role}-message`;
