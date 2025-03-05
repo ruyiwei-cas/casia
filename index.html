@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
     <style>
+        /* 样式保持不变，这里省略 */
         /* 全局样式 */
         * {
             margin: 0;
@@ -1344,6 +1345,9 @@
             let messages = [];
             let isProcessing = false;
             
+            // 当前会话ID - 完全重写的关键解决方案
+            let currentResponseId = null;
+            
             // DOM 元素
             const chatInput = document.getElementById('chat-input');
             const sendButton = document.getElementById('send-button');
@@ -1553,33 +1557,34 @@ sequenceDiagram
                 // 添加消息到历史记录
                 messages.push({ role: 'user', content: userMessage });
                 
-                // 准备接收流式响应
-                prepareForStreamedResponse();
+                // 准备接收流式响应 - 创建唯一响应ID
+                const responseId = 'response-' + Date.now();
+                currentResponseId = responseId;
+                prepareForStreamedResponse(responseId);
                 
                 // 调用 DeepSeek API - 启用流式响应
-                callDeepSeekAPIWithStreaming(messages);
+                callDeepSeekAPIWithStreaming(messages, responseId);
             }
             
-            // 为流式响应准备UI元素
-            function prepareForStreamedResponse() {
+            // 为流式响应准备UI元素 - 修订版
+            function prepareForStreamedResponse(responseId) {
                 const now = new Date();
                 const hours = now.getHours().toString().padStart(2, '0');
                 const minutes = now.getMinutes().toString().padStart(2, '0');
                 const timeString = `${hours}:${minutes}`;
                 
-                // 创建新的助手消息容器
+                // 创建新的助手消息容器，并使用唯一ID标识
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message assistant-message';
-                messageDiv.id = 'current-assistant-message';
                 messageDiv.innerHTML = `
                     <div class="message-avatar assistant-avatar">
                         <i class="bi bi-cpu-fill"></i>
                     </div>
                     <div class="message-content">
-                        <div class="markdown-content" id="streaming-response"></div>
+                        <div class="markdown-content" id="${responseId}"></div>
                         <div class="message-time">${timeString}</div>
                         <div class="message-actions">
-                            <button class="message-action-btn copy-btn" data-content="">
+                            <button class="message-action-btn copy-btn" data-content="" data-response-id="${responseId}">
                                 <i class="bi bi-clipboard"></i> 复制
                             </button>
                         </div>
@@ -1594,9 +1599,9 @@ sequenceDiagram
                     messageDiv.style.transform = 'translateY(0)';
                 }, 10);
                 
-                // 添加打字光标
-                const streamingResponse = document.getElementById('streaming-response');
-                streamingResponse.innerHTML = '<span class="typing-cursor"></span>';
+                // 获取对应输出区域并添加光标
+                const responseElement = document.getElementById(responseId);
+                responseElement.innerHTML = '<span class="typing-cursor"></span>';
                 
                 // 滚动到底部
                 scrollToBottom();
@@ -1607,8 +1612,14 @@ sequenceDiagram
             }
             
             // 流式调用 DeepSeek API
-            async function callDeepSeekAPIWithStreaming(messageHistory) {
+            async function callDeepSeekAPIWithStreaming(messageHistory, responseId) {
                 try {
+                    // 如果在处理过程中请求已过期，则直接返回
+                    if (responseId !== currentResponseId) {
+                        console.log('请求已过期，终止处理');
+                        return;
+                    }
+                    
                     // 创建安全的系统消息，告知模型使用 Markdown 格式和 Mermaid 图表
                     const systemMessage = {
                         role: 'system',
@@ -1690,6 +1701,12 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                     let buffer = '';
                     
                     while (true) {
+                        // 检查当前请求是否仍然是活动的
+                        if (responseId !== currentResponseId) {
+                            console.log('流式响应已过期，终止处理');
+                            break;
+                        }
+                        
                         const { done, value } = await reader.read();
                         if (done) break;
                         
@@ -1712,8 +1729,8 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                                         const textChunk = jsonData.choices[0].delta.content;
                                         fullResponse += textChunk;
                                         
-                                        // 更新UI中的文本
-                                        updateStreamingText(fullResponse);
+                                        // 更新UI中的文本，使用响应ID
+                                        updateStreamingText(fullResponse, responseId);
                                     }
                                 }
                             } catch (error) {
@@ -1723,7 +1740,7 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                     }
                     
                     // 处理最后可能残留的数据
-                    if (buffer.trim() !== '') {
+                    if (buffer.trim() !== '' && responseId === currentResponseId) {
                         try {
                             if (buffer.startsWith('data: ') && buffer.trim() !== 'data: [DONE]') {
                                 const jsonData = JSON.parse(buffer.substring(6));
@@ -1733,7 +1750,7 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                                     fullResponse += textChunk;
                                     
                                     // 更新UI中的文本
-                                    updateStreamingText(fullResponse);
+                                    updateStreamingText(fullResponse, responseId);
                                 }
                             }
                         } catch (error) {
@@ -1742,35 +1759,42 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                     }
                     
                     // 完成流式响应
-                    finishStreamedResponse(fullResponse);
-                    
-                    // 添加消息到历史记录 - 修复历史记录问题
-                    messages.push({ role: 'assistant', content: fullResponse });
+                    if (responseId === currentResponseId) {
+                        finishStreamedResponse(fullResponse, responseId);
+                        
+                        // 添加消息到历史记录
+                        messages.push({ role: 'assistant', content: fullResponse });
+                    }
                     
                 } catch (error) {
                     console.error('API 调用错误:', error);
                     
-                    // 显示错误消息
-                    const streamingResponse = document.getElementById('streaming-response');
-                    if (streamingResponse) {
-                        streamingResponse.innerHTML = `⚠️ 出现错误: ${error.message}`;
+                    // 显示错误消息，使用响应ID
+                    const responseElement = document.getElementById(responseId);
+                    if (responseElement) {
+                        responseElement.innerHTML = `⚠️ 出现错误: ${error.message}`;
                     }
                     
                 } finally {
-                    isProcessing = false;
-                    sendButton.disabled = false;
+                    // 只有当这是当前活动的请求时才重置状态
+                    if (responseId === currentResponseId) {
+                        isProcessing = false;
+                        sendButton.disabled = false;
+                        currentResponseId = null;
+                    }
                 }
             }
             
-            // 更新流式文本
-            function updateStreamingText(text) {
-                const streamingResponse = document.getElementById('streaming-response');
-                if (streamingResponse) {
+            // 更新流式文本 - 修复版本
+            function updateStreamingText(text, responseId) {
+                // 获取对应的响应元素
+                const responseElement = document.getElementById(responseId);
+                if (responseElement) {
                     // 解析Markdown
-                    streamingResponse.innerHTML = marked.parse(text) + '<span class="typing-cursor"></span>';
+                    responseElement.innerHTML = marked.parse(text) + '<span class="typing-cursor"></span>';
                     
                     // 更新复制按钮的数据
-                    const copyBtn = document.querySelector('#current-assistant-message .copy-btn');
+                    const copyBtn = document.querySelector(`.copy-btn[data-response-id="${responseId}"]`);
                     if (copyBtn) {
                         copyBtn.setAttribute('data-content', text);
                     }
@@ -1788,14 +1812,15 @@ Use these diagrams when they help explain concepts, processes, or data, especial
             }
             
             // 完成流式响应
-            function finishStreamedResponse(fullText) {
-                const streamingResponse = document.getElementById('streaming-response');
-                if (streamingResponse) {
+            function finishStreamedResponse(fullText, responseId) {
+                // 获取对应的响应元素
+                const responseElement = document.getElementById(responseId);
+                if (responseElement) {
                     // 解析完整的Markdown
-                    streamingResponse.innerHTML = marked.parse(fullText);
+                    responseElement.innerHTML = marked.parse(fullText);
                     
                     // 更新复制按钮的数据和事件
-                    const copyBtn = document.querySelector('#current-assistant-message .copy-btn');
+                    const copyBtn = document.querySelector(`.copy-btn[data-response-id="${responseId}"]`);
                     if (copyBtn) {
                         copyBtn.setAttribute('data-content', fullText);
                         
@@ -1814,12 +1839,6 @@ Use these diagrams when they help explain concepts, processes, or data, especial
                                     console.error('复制失败:', err);
                                 });
                         });
-                    }
-                    
-                    // 移除ID以便下一次流式响应
-                    const messageDiv = document.getElementById('current-assistant-message');
-                    if (messageDiv) {
-                        messageDiv.removeAttribute('id');
                     }
                     
                     // 最终渲染Mermaid图表
