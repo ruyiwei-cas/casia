@@ -164,6 +164,44 @@
             background-color: rgba(255, 255, 255, 0.05);
         }
         
+        /* 首页按钮 */
+        .home-button {
+            width: 100%;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 25px;
+            position: relative;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .home-button i {
+            font-size: 28px;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .home-button:hover i {
+            transform: translateY(-3px);
+            color: var(--accent-color);
+        }
+        
+        .home-button::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
         /* 主内容区 */
         .main-content {
             flex: 1;
@@ -259,7 +297,7 @@
             align-items: center;
         }
         
-        .mail-icon {
+        .header-icon {
             margin-right: 5px;
             color: var(--text-secondary);
             cursor: pointer;
@@ -273,7 +311,7 @@
             font-size: 18px;
         }
         
-        .mail-icon:hover {
+        .header-icon:hover {
             background-color: var(--primary-light);
             color: var(--primary-color);
             transform: translateY(-2px);
@@ -1136,13 +1174,15 @@
         
         <!-- 侧边栏 -->
         <div class="sidebar">
+            <!-- 首页按钮 -->
+            <div class="home-button" id="home-button">
+                <i class="bi bi-house-door"></i>
+                <span>首页</span>
+            </div>
+            
             <div class="sidebar-item active" id="chat-tab">
                 <i class="bi bi-chat-dots-fill"></i>
                 <span>聊天</span>
-            </div>
-            <div class="sidebar-item" id="app-tab">
-                <i class="bi bi-grid-3x3-gap"></i>
-                <span>应用</span>
             </div>
             <div class="sidebar-item" id="knowledge-tab">
                 <i class="bi bi-journal-text"></i>
@@ -1155,7 +1195,7 @@
             <!-- 头部 -->
             <div class="header">
                 <div class="title-container">
-					<img src="logo.png" alt="中科院自动化所logo" class="logo">
+		    <img src="logo.png" alt="中科院自动化所logo" class="logo">
                     <div class="title">中科院自动化所（矿山垂类大模型）</div>
                 </div>
                 <div class="search-box">
@@ -1163,8 +1203,11 @@
                     <input type="text" placeholder="DeepSeek搜索...">
                 </div>
                 <div class="user-options">
-                    <div class="mail-icon" id="charts-help">
+                    <div class="header-icon" id="charts-help">
                         <i class="bi bi-bar-chart"></i>
+                    </div>
+                    <div class="header-icon" id="email-contact">
+                        <i class="bi bi-envelope"></i>
                     </div>
                 </div>
             </div>
@@ -1292,9 +1335,10 @@
             const welcomeSection = document.getElementById('welcome-section');
             const suggestionsContainer = document.getElementById('suggestions-container');
             const chatTab = document.getElementById('chat-tab');
-            const appTab = document.getElementById('app-tab');
             const knowledgeTab = document.getElementById('knowledge-tab');
+            const homeButton = document.getElementById('home-button');
             const chartsHelp = document.getElementById('charts-help');
+            const emailContact = document.getElementById('email-contact');
             
             // 图表类型按钮
             const chartFlowchart = document.getElementById('chart-flowchart');
@@ -1324,6 +1368,21 @@
             
             // 初始化界面
             function initializeInterface() {
+                // 首页/重置按钮点击事件
+                homeButton.addEventListener('click', function() {
+                    window.location.reload();
+                });
+                
+                // 邮箱联系按钮
+                emailContact.addEventListener('click', function() {
+                    window.location.href = 'mailto:yiwei.ru@cripac.ia.ac.cn';
+                });
+                
+                // 知识库按钮点击事件
+                knowledgeTab.addEventListener('click', function() {
+                    window.location.href = 'rag.html';
+                });
+                
                 // 建议卡片点击事件
                 const suggestionCards = document.querySelectorAll('.suggestion-card');
                 suggestionCards.forEach(card => {
@@ -1444,21 +1503,10 @@ sequenceDiagram
                     }
                 });
                 
-                // 侧边栏标签点击事件
+                // 聊天标签点击事件
                 chatTab.addEventListener('click', function() {
                     resetActiveTab();
                     chatTab.classList.add('active');
-                });
-                
-                appTab.addEventListener('click', function() {
-                    resetActiveTab();
-                    appTab.classList.add('active');
-                });
-                
-                knowledgeTab.addEventListener('click', function() {
-                    resetActiveTab();
-                    knowledgeTab.classList.add('active');
-                    alert('知识库功能正在开发中...');
                 });
                 
                 // 创建浮动元素
@@ -1735,7 +1783,6 @@ Use these diagrams when they help explain concepts, processes, or data, especial
             // 重置侧边栏激活状态
             function resetActiveTab() {
                 chatTab.classList.remove('active');
-                appTab.classList.remove('active');
                 knowledgeTab.classList.remove('active');
             }
             
