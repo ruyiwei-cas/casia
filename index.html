@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中科院自动化所（矿山垂类大模型）</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        
+        :root {
+            --primary-color: #0050e0;
+            --primary-light: #e5edff;
+            --secondary-color: #00b0ff;
+            --accent-color: #00eaff;
+            --dark-bg: #001428;
+            --light-bg: #f5f9ff;
+            --card-bg: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-light: #999999;
+            --border-color: #e0e9ff;
+            --shadow-color: rgba(0, 80, 224, 0.12);
+            --gradient-bg: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-accent: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            --glow-effect: 0 0 20px rgba(0, 80, 224, 0.25);
+            --mining-color-1: #ffb100;
+            --mining-color-2: #ff5630;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-primary);
+            overflow: hidden;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        /* 主容器 */
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 科技背景装饰 */
+        .tech-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0.05;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .tech-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(0, 80, 224, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 80, 224, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.3;
+        }
+        
+        .tech-line {
+            position: absolute;
+            background: var(--primary-color);
+            opacity: 0.3;
+        }
+        
+        .tech-circle {
+            position: absolute;
+            border: 1px solid var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.15;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            width: 80px;
+            background: var(--dark-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 25px;
+            color: white;
+            position: relative;
+            z-index: 10;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 80, 224, 0.3), transparent 70%);
+            z-index: -1;
+        }
+        
+        .sidebar-item {
+            width: 100%;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-item i {
+            font-size: 26px;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            height: 60%;
+            width: 4px;
+            background: var(--accent-color);
+            border-radius: 0 3px 3px 0;
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.6);
+        }
+        
+        .sidebar-item:hover i {
+            transform: translateY(-3px);
+            color: var(--accent-color);
+        }
+        
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            background-color: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 0 25px var(--shadow-color);
+        }
+        
+        /* 头部栏 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+        
+        .title-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            height: 45px;
+            margin-right: 15px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-primary);
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+        
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--gradient-bg);
+            border-radius: 3px;
+            box-shadow: 0 2px 6px rgba(0, 80, 224, 0.3);
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: var(--light-bg);
+            border-radius: 24px;
+            padding: 8px 18px;
+            width: 320px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+        }
+        
+        .search-box:hover, .search-box:focus-within {
+            box-shadow: var(--glow-effect);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        
+        .search-box input {
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 8px;
+            width: 100%;
+            color: var(--text-primary);
+            font-size: 15px;
+        }
+        
+        .search-box i {
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+        
+        .user-options {
+            display: flex;
+            align-items: center;
+        }
+        
+        .mail-icon {
+            margin-right: 5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .mail-icon:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 聊天部分 */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 35px 100px;
+            overflow-y: auto;
+            background-color: var(--light-bg);
+            position: relative;
+            background-image: radial-gradient(circle at 10% 90%, rgba(0, 80, 224, 0.03) 0%, transparent 60%),
+                             radial-gradient(circle at 90% 10%, rgba(0, 234, 255, 0.03) 0%, transparent 60%);
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeIn 0.9s ease-out;
+            position: relative;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 80, 224, 0.05) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+        
+        .bot-avatar {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--gradient-bg);
+            color: white;
+            font-size: 38px;
+            margin-bottom: 25px;
+            position: relative;
+            box-shadow: var(--glow-effect), inset 0 2px 10px rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+        }
+        
+        .bot-avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: rotate(45deg);
+            animation: shineEffect 5s infinite;
+        }
+        
+        @keyframes shineEffect {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            40%, 100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        .welcome-text {
+            margin-bottom: 15px;
+            font-size: 17px;
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin: 0 auto 25px;
+            line-height: 1.7;
+        }
+        
+        .welcome-section h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 28px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .action-links {
+            margin-top: 15px;
+            font-size: 15px;
+            color: var(--primary-color);
+        }
+        
+        .action-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-left: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 6px 12px;
+            border-radius: 6px;
+            position: relative;
+        }
+        
+        .action-links a:hover {
+            background-color: var(--primary-light);
+            box-shadow: 0 3px 8px rgba(0, 80, 224, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .action-links a.more-link::after {
+            content: '»';
+            margin-left: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .action-links a.more-link:hover::after {
+            margin-left: 8px;
+        }
+        
+        .suggestions-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 35px;
+            perspective: 1000px;
+        }
+        
+        .suggestion-card {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 24px 28px;
+            width: 45%;
+            min-width: 350px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            animation: fadeInUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+            animation-delay: calc(var(--index) * 0.15s);
+            opacity: 0;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(25px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .suggestion-card:nth-child(1) { --index: 1; }
+        .suggestion-card:nth-child(2) { --index: 2; }
+        .suggestion-card:nth-child(3) { --index: 3; }
+        .suggestion-card:nth-child(4) { --index: 4; }
+        
+        .suggestion-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--gradient-bg);
+            border-radius: 4px 0 0 4px;
+            opacity: 0.85;
+            transition: all 0.3s ease;
+        }
+        
+        .suggestion-card:nth-child(odd)::before {
+            background: var(--gradient-bg);
+        }
+        
+        .suggestion-card:nth-child(even)::before {
+            background: var(--gradient-accent);
+        }
+        
+        .suggestion-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 40%;
+            background: linear-gradient(to left, rgba(255, 255, 255, 0.9), transparent);
+            opacity: 0;
+            transition: all 0.4s ease;
+            transform: translateX(100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .suggestion-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px var(--shadow-color);
+            border-color: var(--primary-color);
+        }
+        
+        .suggestion-card:hover::before {
+            width: 8px;
+            box-shadow: 0 0 15px rgba(0, 80, 224, 0.4);
+        }
+        
+        .suggestion-card:hover::after {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .suggestion-card p:first-child {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 17px;
+            position: relative;
+            padding-left: 12px;
+            line-height: 1.4;
+        }
+        
+        .suggestion-card p:first-child::before {
+            content: '●';
+            position: absolute;
+            left: -2px;
+            top: 1px;
+            font-size: 12px;
+            color: var(--primary-color);
+        }
+        
+        .suggestion-card:nth-child(even) p:first-child {
+            color: var(--secondary-color);
+        }
+        
+        .suggestion-card:nth-child(even) p:first-child::before {
+            color: var(--secondary-color);
+        }
+        
+        .suggestion-card p:last-child {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        /* 底部输入框 */
+        .chat-input-container {
+            padding: 25px 100px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chat-input-box {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            overflow: hidden;
+            padding: 12px 20px;
+            background-color: var(--light-bg);
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chat-input-box:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: var(--glow-effect);
+            transform: translateY(-2px);
+        }
+        
+        .input-options {
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary);
+            margin-right: 15px;
+        }
+        
+        .input-options i {
+            margin-right: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .input-options i:hover {
+            color: var(--primary-color);
+            transform: scale(1.1);
+            background-color: rgba(0, 80, 224, 0.1);
+        }
+        
+        .chat-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 0;
+            font-size: 16px;
+            background-color: transparent;
+            color: var(--text-primary);
+        }
+        
+        .send-button {
+            background: var(--gradient-bg);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 3px 10px rgba(0, 80, 224, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .send-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0.5;
+        }
+        
+        .send-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 80, 224, 0.4);
+        }
+        
+        .send-button:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 80, 224, 0.3);
+        }
+        
+        .send-button i {
+            font-size: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 功能标签 */
+        .function-tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        
+        .function-tag {
+            display: flex;
+            align-items: center;
+            background-color: var(--primary-light);
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .function-tag:hover {
+            background-color: rgba(0, 80, 224, 0.12);
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 80, 224, 0.15);
+        }
+        
+        .function-tag i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        /* DeepSeek 标签 */
+        .deepseek-tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            padding: 4px 14px;
+            border-radius: 16px;
+            font-size: 12px;
+            margin-left: 20px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0, 80, 224, 0.12);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .chat-container,
+            .chat-input-container {
+                padding: 25px 60px;
+            }
+            
+            .suggestion-card {
+                width: 48%;
+                min-width: 320px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .chat-container,
+            .chat-input-container {
+                padding: 20px 40px;
+            }
+            
+            .suggestions-container {
+                gap: 20px;
+            }
+            
+            .suggestion-card {
+                width: 100%;
+                min-width: 0;
+                padding: 20px 25px;
+            }
+            
+            .search-box {
+                width: 250px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+            
+            .chat-container,
+            .chat-input-container {
+                padding: 15px 20px;
+            }
+            
+            .title {
+                font-size: 18px;
+            }
+            
+            .logo {
+                height: 35px;
+            }
+            
+            .search-box {
+                width: 180px;
+            }
+            
+            .welcome-section h2 {
+                font-size: 24px;
+            }
+            
+            .bot-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 30px;
+            }
+        }
+        
+        /* 科技点缀动画 */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.6; }
+        }
+        
+        @keyframes floatCircle {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-15px) rotate(360deg); }
+        }
+        
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .el-circle {
+            border: 1px solid var(--primary-color);
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            animation: floatCircle 18s infinite alternate ease-in-out;
+        }
+        
+        .el-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            animation: pulse 4s infinite alternate ease-in-out;
+        }
+        
+        .el-square {
+            width: 25px;
+            height: 25px;
+            border: 1px solid var(--secondary-color);
+            transform: rotate(45deg);
+            animation: pulse 6s infinite alternate ease-in-out;
+        }
+        
+        .el-hex {
+            width: 30px;
+            height: 35px;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            border: 1px solid var(--accent-color);
+            animation: pulse 7s infinite alternate ease-in-out;
+        }
+        
+        /* 矿山元素装饰 */
+        .mining-element {
+            position: absolute;
+            opacity: 0.07;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .el-pickaxe {
+            width: 40px;
+            height: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230050e0'%3E%3Cpath d='M14.79,10.62L3.5,21.9l-1.4-1.4L13.38,9.21L14.79,10.62 M19.27,7.73L19.86,7.14l1.27,1.27l-0.59,0.59L19.27,7.73 M17.75,10.55L17.16,9.97l1.27-1.27l0.59,0.59L17.75,10.55 M15.82,8.63L15.24,8.04l1.27-1.27l0.59,0.59L15.82,8.63 M17.75,6.69l1.27-1.27l0.59,0.59L18.34,7.28L17.75,6.69 M7.73,19.27L7.14,19.86l-1.27-1.27l0.59-0.59L7.73,19.27 M10.55,17.75l0.59,0.59l-1.27,1.27l-0.59-0.59L10.55,17.75 M8.63,15.82l0.59,0.59l-1.27,1.27l-0.59-0.59L8.63,15.82 M6.69,17.75l-1.27,1.27l-0.59-0.59l1.27-1.27L6.69,17.75 M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C11.03,22 10.1,21.87 9.24,21.63L17.23,13.64L13.64,10.05L5.65,18.04C5.13,17.18 5,16.25 5,15.3V15.28C5,14.25 5.13,13.22 5.39,12.22C5.45,12 5.5,11.78 5.59,11.58L12.18,5H15.28C17.47,5 19.53,5.95 21.03,7.45L14.83,13.64L17.23,16.05L19.03,14.25C19.66,13.62 19.66,12.57 19.03,11.95L21.45,9.53C21.81,10.29 22,11.13 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2Z' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            animation: floatMining 20s infinite alternate ease-in-out;
+        }
+        
+        .el-helmet {
+            width: 40px;
+            height: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230050e0'%3E%3Cpath d='M19,3V12H5V3H19M21,1H3V14H21V1M8,21H16V23H8V21M9,17H15V19H9V17Z' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            animation: floatMining 15s infinite alternate-reverse ease-in-out;
+        }
+        
+        @keyframes floatMining {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(5px) rotate(-5deg); }
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 80, 224, 0.05);
+            border-radius: 8px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 80, 224, 0.15);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 80, 224, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 科技背景装饰 -->
+        <div class="tech-bg">
+            <div class="tech-grid"></div>
+            
+            <!-- 浮动元素装饰 -->
+            <div class="floating-element el-circle" style="top: 15%; left: 10%; width: 120px; height: 120px;"></div>
+            <div class="floating-element el-circle" style="bottom: 25%; right: 12%; width: 150px; height: 150px;"></div>
+            <div class="floating-element el-dot" style="top: 35%; right: 25%;"></div>
+            <div class="floating-element el-dot" style="bottom: 30%; left: 20%;"></div>
+            <div class="floating-element el-square" style="top: 65%; right: 35%;"></div>
+            <div class="floating-element el-square" style="top: 20%; left: 35%;"></div>
+            <div class="floating-element el-hex" style="bottom: 15%; right: 30%;"></div>
+            <div class="floating-element el-hex" style="top: 55%; left: 15%;"></div>
+            
+            <!-- 矿山元素装饰 -->
+            <div class="mining-element el-pickaxe" style="top: 40%; right: 15%;"></div>
+            <div class="mining-element el-helmet" style="bottom: 20%; left: 25%;"></div>
+            
+            <!-- 技术线条装饰 -->
+            <div class="tech-line" style="top: 15%; left: 0; width: 100%; height: 1px;"></div>
+            <div class="tech-line" style="top: 70%; left: 0; width: 100%; height: 1px;"></div>
+            <div class="tech-line" style="top: 0; left: 25%; width: 1px; height: 100%;"></div>
+            <div class="tech-line" style="top: 0; left: 75%; width: 1px; height: 100%;"></div>
+        </div>
+        
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-item active" id="chat-tab">
+                <i class="bi bi-chat-dots-fill"></i>
+                <span>聊天</span>
+            </div>
+            <div class="sidebar-item" id="app-tab">
+                <i class="bi bi-grid-3x3-gap"></i>
+                <span>应用</span>
+            </div>
+            <div class="sidebar-item" id="knowledge-tab">
+                <i class="bi bi-journal-text"></i>
+                <span>知识库</span>
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="title-container">
+                    <img src="logo.png" alt="中科院自动化所logo" class="logo">
+                    <div class="title">中科院自动化所（矿山垂类大模型）</div>
+                </div>
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="DeepSeek搜索...">
+                </div>
+                <div class="user-options">
+                    <div class="mail-icon">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 聊天内容区 -->
+            <div class="chat-container">
+                <!-- 欢迎部分 -->
+                <div class="welcome-section">
+                    <div class="bot-avatar">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h2>您好！我是中科院矿山大模型！</h2>
+                    <p class="welcome-text">基于先进的人工智能技术，为矿山行业提供专业知识服务。我可以帮助您解答矿山安全生产、开采技术、设备维护等相关问题，提供精准的专业指导与解决方案。</p>
+                    
+                    <div class="action-links">
+                        <a href="#" class="toggle-link">选一条问题</a>
+                        <a href="#" class="more-link">更多功能</a>
+                    </div>
+                </div>
+                
+                <!-- 建议问题卡片 -->
+                <div class="suggestions-container">
+                    <div class="suggestion-card">
+                        <p>矿井通风系统设计与优化方案</p>
+                        <p>如何优化矿井通风系统设计，提高通风效率和安全性？我需要了解风路设计原则和新型通风技术应用方案。</p>
+                    </div>
+                    <div class="suggestion-card">
+                        <p>矿山顶板事故预防与监测技术</p>
+                        <p>有哪些先进的矿山顶板监测技术和预防措施可以降低事故风险？特别是在复杂地质条件下的应用方案。</p>
+                    </div>
+                    <div class="suggestion-card">
+                        <p>煤矿瓦斯治理与安全管控方法</p>
+                        <p>如何有效进行煤矿瓦斯抽采和治理，构建完善的安全管控体系？请提供最新的瓦斯治理理念和技术手段。</p>
+                    </div>
+                    <div class="suggestion-card">
+                        <p>煤矿智能化开采技术与应用</p>
+                        <p>煤矿智能化开采技术的最新发展趋势和实际应用案例有哪些？特别是在无人化采掘和远程控制方面的突破。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 底部输入框 -->
+            <div class="chat-input-container">
+                <!-- 功能标签 -->
+                <div class="function-tags">
+                    <div class="function-tag">
+                        <i class="bi bi-image"></i>
+                        <span>选择图片(0/1)</span>
+                    </div>
+                    <div class="function-tag">
+                        <i class="bi bi-database"></i>
+                        <span>知识库广场</span>
+                    </div>
+                    <div class="function-tag">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>上传文档</span>
+                    </div>
+                </div>
+                
+                <!-- 输入框 -->
+                <div class="chat-input-box">
+                    <div class="input-options">
+                        <i class="bi bi-emoji-smile"></i>
+                        <i class="bi bi-text-paragraph"></i>
+                    </div>
+                    <input type="text" class="chat-input" placeholder="请输入您的矿山相关问题...">
+                    <button class="send-button">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 创建科技风格背景点缀
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建更多浮动元素
+            for (let i = 0; i < 40; i++) {
+                createFloatingElement();
+            }
+            
+            // 添加视差鼠标移动效果
+            document.addEventListener('mousemove', function(e) {
+                const mouseX = e.clientX / window.innerWidth;
+                const mouseY = e.clientY / window.innerHeight;
+                
+                const elements = document.querySelectorAll('.floating-element, .mining-element');
+                elements.forEach(element => {
+                    const offsetX = (mouseX - 0.5) * 25;
+                    const offsetY = (mouseY - 0.5) * 25;
+                    const depth = parseFloat(element.style.zIndex || 1) * 0.3;
+                    
+                    element.style.transform = `translate(${offsetX * depth}px, ${offsetY * depth}px) ${element.style.transform}`;
+                });
+                
+                // 给卡片添加3D倾斜效果
+                const cards = document.querySelectorAll('.suggestion-card');
+                cards.forEach(card => {
+                    const cardRect = card.getBoundingClientRect();
+                    const cardCenterX = cardRect.left + cardRect.width / 2;
+                    const cardCenterY = cardRect.top + cardRect.height / 2;
+                    
+                    const rotateY = (e.clientX - cardCenterX) / 50;
+                    const rotateX = (cardCenterY - e.clientY) / 50;
+                    
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+            });
+            
+            // 侧边栏导航交互
+            const chatTab = document.getElementById('chat-tab');
+            const appTab = document.getElementById('app-tab');
+            const knowledgeTab = document.getElementById('knowledge-tab');
+            
+            // 重置激活状态
+            function resetTabActive() {
+                chatTab.classList.remove('active');
+                appTab.classList.remove('active');
+                knowledgeTab.classList.remove('active');
+            }
+            
+            // 添加点击波纹效果
+            function addRippleEffect(element) {
+                element.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.pointerEvents = 'none';
+                    
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height) * 2;
+                    
+                    ripple.style.width = `${size}px`;
+                    ripple.style.height = `${size}px`;
+                    ripple.style.left = `${e.clientX - rect.left - size/2}px`;
+                    ripple.style.top = `${e.clientY - rect.top - size/2}px`;
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            }
+            
+            // 添加波纹动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes ripple {
+                    to {
+                        transform: scale(4);
+                        opacity: 0;
+                    }
+                }
+                
+                .sidebar-item, .function-tag, .send-button {
+                    position: relative;
+                    overflow: hidden;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 为交互元素添加波纹效果
+            document.querySelectorAll('.sidebar-item, .function-tag, .send-button').forEach(addRippleEffect);
+            
+            // 聊天标签点击事件
+            chatTab.addEventListener('click', function() {
+                resetTabActive();
+                chatTab.classList.add('active');
+                // 保持当前页面
+            });
+            
+            // 应用标签点击事件
+            appTab.addEventListener('click', function() {
+                resetTabActive();
+                appTab.classList.add('active');
+                // 这里可以跳转到应用页面
+                // window.location.href = 'app.html';
+            });
+            
+            // 知识库标签点击事件
+            knowledgeTab.addEventListener('click', function() {
+                resetTabActive();
+                knowledgeTab.classList.add('active');
+                // 跳转到rag.html页面
+                window.location.href = 'rag.html';
+            });
+            
+            // 建议卡片交互
+            const suggestionCards = document.querySelectorAll('.suggestion-card');
+            suggestionCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    // 恢复其他卡片
+                    suggestionCards.forEach(c => {
+                        if (c !== card) {
+                            c.style.opacity = '0.7';
+                            c.style.transform = 'scale(0.98)';
+                        }
+                    });
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    // 恢复所有卡片
+                    suggestionCards.forEach(c => {
+                        c.style.opacity = '1';
+                        c.style.transform = 'none';
+                    });
+                });
+                
+                card.addEventListener('click', function() {
+                    const questionText = this.querySelector('p:last-child').textContent;
+                    const chatInput = document.querySelector('.chat-input');
+                    chatInput.value = questionText;
+                    chatInput.focus();
+                    
+                    // 添加闪烁动画
+                    chatInput.classList.add('highlight-input');
+                    setTimeout(() => {
+                        chatInput.classList.remove('highlight-input');
+                    }, 1000);
+                });
+            });
+            
+            // 添加输入框高亮样式
+            const highlightStyle = document.createElement('style');
+            highlightStyle.textContent = `
+                @keyframes highlightBorder {
+                    0%, 100% { border-color: var(--primary-color); }
+                    50% { border-color: var(--accent-color); }
+                }
+                
+                .highlight-input {
+                    animation: highlightBorder 1s ease;
+                }
+            `;
+            document.head.appendChild(highlightStyle);
+            
+            // 发送按钮交互
+            const sendButton = document.querySelector('.send-button');
+            const chatInput = document.querySelector('.chat-input');
+            
+            function sendMessage() {
+                if (chatInput.value.trim() !== '') {
+                    // 这里可以添加发送消息的逻辑
+                    console.log('发送消息:', chatInput.value);
+                    
+                    // 模拟消息发送动画
+                    sendButton.classList.add('sending');
+                    setTimeout(() => {
+                        chatInput.value = '';
+                        sendButton.classList.remove('sending');
+                    }, 300);
+                }
+            }
+            
+            // 发送动画样式
+            const sendAnimStyle = document.createElement('style');
+            sendAnimStyle.textContent = `
+                @keyframes sendPulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(0.85); }
+                    100% { transform: scale(1); }
+                }
+                
+                .sending {
+                    animation: sendPulse 0.3s ease;
+                }
+            `;
+            document.head.appendChild(sendAnimStyle);
+            
+            sendButton.addEventListener('click', sendMessage);
+            
+            // 按回车发送消息
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+                    sendMessage();
+                }
+            });
+            
+            // 欢迎动画序列
+            setTimeout(() => {
+                document.querySelector('.welcome-section').style.opacity = '1';
+                document.querySelector('.welcome-section').style.transform = 'translateY(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.suggestion-card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 150);
+                });
+            }, 500);
+        });
+        
+        function createFloatingElement() {
+            const types = ['dot', 'line', 'circle', 'square', 'hex'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            const element = document.createElement('div');
+            element.classList.add('floating-element');
+            
+            // 随机位置
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            element.style.left = `${x}%`;
+            element.style.top = `${y}%`;
+            
+            // 随机层级和大小
+            element.style.zIndex = Math.floor(Math.random() * 3) + 1;
+            const size = Math.random() * 6 + 2;
+            
+            // 随机动画延迟和持续时间
+            element.style.animationDelay = `${Math.random() * 5}s`;
+            element.style.animationDuration = `${Math.random() * 15 + 10}s`;
+            
+            switch(type) {
+                case 'dot':
+                    element.classList.add('el-dot');
+                    element.style.width = `${size}px`;
+                    element.style.height = `${size}px`;
+                    break;
+                case 'line':
+                    const isHorizontal = Math.random() > 0.5;
+                    element.style.width = isHorizontal ? `${Math.random() * 80 + 20}px` : '1px';
+                    element.style.height = isHorizontal ? '1px' : `${Math.random() * 80 + 20}px`;
+                    element.style.backgroundColor = 'rgba(0, 80, 224, 0.15)';
+                    break;
+                case 'circle':
+                    element.classList.add('el-circle');
+                    const circleSize = Math.random() * 50 + 20;
+                    element.style.width = `${circleSize}px`;
+                    element.style.height = `${circleSize}px`;
+                    break;
+                case 'square':
+                    element.classList.add('el-square');
+                    const squareSize = Math.random() * 25 + 10;
+                    element.style.width = `${squareSize}px`;
+                    element.style.height = `${squareSize}px`;
+                    break;
+                case 'hex':
+                    element.classList.add('el-hex');
+                    const hexSize = Math.random() * 25 + 15;
+                    element.style.width = `${hexSize}px`;
+                    element.style.height = `${hexSize * 1.15}px`;
+                    break;
+            }
+            
+            // 随机透明度
+            element.style.opacity = (Math.random() * 0.15 + 0.05).toString();
+            
+            document.querySelector('.tech-bg').appendChild(element);
+        }
+    </script>
+</body>
+</html>
