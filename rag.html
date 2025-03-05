@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中科院自动化所（矿山垂类知识库）</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        
+        :root {
+            --primary-color: #0050e0;
+            --primary-light: #e5edff;
+            --secondary-color: #00b0ff;
+            --accent-color: #00eaff;
+            --dark-bg: #001428;
+            --light-bg: #f5f9ff;
+            --card-bg: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-light: #999999;
+            --border-color: #e0e9ff;
+            --shadow-color: rgba(0, 80, 224, 0.12);
+            --gradient-bg: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-accent: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            --glow-effect: 0 0 20px rgba(0, 80, 224, 0.25);
+            --mining-color-1: #ffb100;
+            --mining-color-2: #ff5630;
+            --user-msg-bg: var(--primary-light);
+            --assistant-msg-bg: var(--card-bg);
+            --loading-bg: rgba(0, 80, 224, 0.1);
+            --code-bg: #f6f8fa;
+            --code-border: #dfe5ed;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-primary);
+            overflow: hidden;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        /* 主容器 */
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 科技背景装饰 */
+        .tech-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            opacity: 0.05;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .tech-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(0, 80, 224, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 80, 224, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.3;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            width: 80px;
+            background: var(--dark-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 25px;
+            color: white;
+            position: relative;
+            z-index: 10;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 80, 224, 0.3), transparent 70%);
+            z-index: -1;
+        }
+        
+        .sidebar-item {
+            width: 100%;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-item i {
+            font-size: 26px;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            height: 60%;
+            width: 4px;
+            background: var(--accent-color);
+            border-radius: 0 3px 3px 0;
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.6);
+        }
+        
+        .sidebar-item:hover i {
+            transform: translateY(-3px);
+            color: var(--accent-color);
+        }
+        
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* 首页按钮 */
+        .home-button {
+            width: 100%;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 25px;
+            position: relative;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .home-button i {
+            font-size: 28px;
+            margin-bottom: 6px;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .home-button:hover i {
+            transform: translateY(-3px);
+            color: var(--accent-color);
+        }
+        
+        .home-button::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 0 25px var(--shadow-color);
+        }
+        
+        /* 头部栏 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+        
+        .title-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            height: 45px;
+            margin-right: 15px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-primary);
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+        
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--gradient-bg);
+            border-radius: 3px;
+            box-shadow: 0 2px 6px rgba(0, 80, 224, 0.3);
+        }
+        
+        .user-options {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-icon {
+            margin-right: 5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .header-icon:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 知识库内容 */
+        .rag-container {
+            flex: 1;
+            display: flex;
+            background-color: var(--light-bg);
+            overflow: hidden;
+        }
+        
+        /* 左侧面板 */
+        .left-panel {
+            width: 380px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: width 0.3s ease;
+        }
+        
+        .left-panel.collapsed {
+            width: 70px;
+        }
+        
+        .files-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .files-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .files-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background-color: rgba(0, 80, 224, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .action-btn i {
+            font-size: 18px;
+        }
+        
+        .files-search {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .search-input {
+            background-color: var(--light-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 15px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-input input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 15px;
+            color: var(--text-primary);
+            padding: 0 10px;
+        }
+        
+        .search-input i {
+            color: var(--text-light);
+        }
+        
+        .files-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        
+        .file-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 80, 224, 0.06);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .file-item:hover {
+            background-color: rgba(0, 80, 224, 0.05);
+        }
+        
+        .file-item.selected {
+            background-color: var(--primary-light);
+        }
+        
+        .file-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .file-icon i {
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        
+        .file-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 15px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-meta {
+            color: var(--text-light);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .file-meta i {
+            margin-right: 4px;
+            font-size: 12px;
+        }
+        
+        /* 右侧内容区 */
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .document-view {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background-color: var(--light-bg);
+            position: relative;
+        }
+        
+        .document-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .document-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            text-align: center;
+            color: var(--text-light);
+        }
+        
+        .document-placeholder i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: var(--primary-light);
+        }
+        
+        .document-placeholder h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+        
+        .document-placeholder p {
+            max-width: 500px;
+            margin-bottom: 25px;
+        }
+        
+        .placeholder-action {
+            background: var(--gradient-bg);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 80, 224, 0.2);
+        }
+        
+        .placeholder-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 80, 224, 0.3);
+        }
+        
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .document-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        
+        .document-meta {
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .document-meta span {
+            display: flex;
+            align-items: center;
+        }
+        
+        .document-meta i {
+            margin-right: 4px;
+        }
+        
+        .document-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .document-text {
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+        
+        .document-text p {
+            margin-bottom: 1em;
+        }
+        
+        .document-text h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            color: var(--primary-color);
+        }
+        
+        .document-text h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 1.2em;
+            margin-bottom: 0.7em;
+            color: var(--primary-color);
+        }
+        
+        .document-text ul, .document-text ol {
+            margin-bottom: 1em;
+            padding-left: 1.5em;
+        }
+        
+        .document-text li {
+            margin-bottom: 0.5em;
+        }
+        
+        /* 查询输入区 */
+        .query-container {
+            padding: 20px 30px;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .query-input-box {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 12px 20px;
+            background-color: var(--light-bg);
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .query-input-box:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: var(--glow-effect);
+            transform: translateY(-2px);
+        }
+        
+        .query-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 0;
+            font-size: 16px;
+            background-color: transparent;
+            color: var(--text-primary);
+        }
+        
+        .query-button {
+            background: var(--gradient-bg);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 3px 10px rgba(0, 80, 224, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .query-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+        
+        .query-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0.5;
+        }
+        
+        .query-button:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 80, 224, 0.4);
+        }
+        
+        .query-button:active:not(:disabled) {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 80, 224, 0.3);
+        }
+        
+        .query-button i {
+            font-size: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 查询答案 */
+        .answer-box {
+            margin-top: 20px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .answer-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .answer-title i {
+            font-size: 18px;
+        }
+        
+        .answer-content {
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+        
+        .answer-sources {
+            margin-top: 15px;
+            border-top: 1px solid rgba(0, 80, 224, 0.15);
+            padding-top: 15px;
+        }
+        
+        .answer-sources-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .answer-sources-title i {
+            margin-right: 5px;
+        }
+        
+        .source-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .source-number {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-right: 10px;
+            background-color: white;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .source-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 80, 224, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .left-panel {
+                width: 320px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .left-panel {
+                width: 280px;
+            }
+            
+            .document-content {
+                padding: 25px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .rag-container {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                width: 100%;
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .document-content {
+                padding: 20px;
+            }
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 80, 224, 0.05);
+            border-radius: 8px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 80, 224, 0.15);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 80, 224, 0.3);
+        }
+        
+        /* Markdown 样式增强 */
+        .markdown-content {
+            line-height: 1.7;
+        }
+        
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4,
+        .markdown-content h5,
+        .markdown-content h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.75em;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--primary-color);
+        }
+        
+        .markdown-content h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.3em;
+        }
+        
+        .markdown-content h2 {
+            font-size: 1.6em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.3em;
+        }
+        
+        .markdown-content h3 {
+            font-size: 1.4em;
+        }
+        
+        .markdown-content h4 {
+            font-size: 1.2em;
+        }
+        
+        .markdown-content h5 {
+            font-size: 1em;
+        }
+        
+        .markdown-content h6 {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        
+        .markdown-content p {
+            margin-bottom: 1em;
+        }
+        
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 0.5em;
+        }
+        
+        .markdown-content blockquote {
+            padding: 0.5em 1em;
+            margin: 0 0 1em 0;
+            border-left: 4px solid var(--primary-light);
+            background-color: rgba(0, 80, 224, 0.05);
+            color: var(--text-secondary);
+        }
+        
+        .markdown-content code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            background-color: var(--code-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+            border: 1px solid var(--code-border);
+        }
+        
+        .markdown-content pre {
+            margin: 1em 0;
+            padding: 1em;
+            background-color: var(--code-bg);
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--code-border);
+        }
+        
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+            border: none;
+            font-size: 0.9em;
+            display: block;
+            line-height: 1.5;
+        }
+        
+        .markdown-content a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+        
+        .markdown-content table th,
+        .markdown-content table td {
+            border: 1px solid var(--border-color);
+            padding: 0.5em 0.75em;
+            text-align: left;
+        }
+        
+        .markdown-content table th {
+            background-color: var(--primary-light);
+            font-weight: 600;
+        }
+        
+        .markdown-content table tr:nth-child(even) {
+            background-color: var(--light-bg);
+        }
+        
+        .markdown-content img {
+            max-width: 100%;
+            margin: 1em 0;
+            border-radius: 6px;
+        }
+        
+        .markdown-content hr {
+            height: 1px;
+            background-color: var(--border-color);
+            border: none;
+            margin: 2em 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 科技背景装饰 -->
+        <div class="tech-bg">
+            <div class="tech-grid"></div>
+        </div>
+        
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <!-- 首页按钮 -->
+            <div class="home-button" id="home-button">
+                <i class="bi bi-house-door"></i>
+                <span>首页</span>
+            </div>
+            
+            <div class="sidebar-item" id="chat-tab">
+                <i class="bi bi-chat-dots-fill"></i>
+                <span>聊天</span>
+            </div>
+            <div class="sidebar-item active" id="knowledge-tab">
+                <i class="bi bi-journal-text"></i>
+                <span>知识库</span>
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 头部 -->
+            <div class="header">
+                <div class="title-container">
+                    <img src="logo.png" alt="中科院自动化所logo" class="logo">
+                    <div class="title">中科院自动化所（矿山垂类知识库）</div>
+                </div>
+                <div class="user-options">
+                    <div class="header-icon" id="help-icon">
+                        <i class="bi bi-question-circle"></i>
+                    </div>
+                    <div class="header-icon" id="email-contact">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 知识库内容 -->
+            <div class="rag-container">
+                <!-- 左侧面板 -->
+                <div class="left-panel" id="left-panel">
+                    <div class="files-header">
+                        <h2>文档库</h2>
+                        <div class="files-actions">
+                            <button class="action-btn" id="upload-btn" title="上传文档">
+                                <i class="bi bi-cloud-upload"></i>
+                            </button>
+                            <button class="action-btn" id="collapse-btn" title="收起面板">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="files-search">
+                        <div class="search-input">
+                            <i class="bi bi-search"></i>
+                            <input type="text" placeholder="搜索文档..." id="search-input">
+                        </div>
+                    </div>
+                    
+                    <div class="files-list" id="files-list">
+                        <div class="file-item" data-id="1">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">煤矿安全生产规定.pdf</div>
+                                <div class="file-meta">
+                                    <i class="bi bi-clock"></i> 2023-05-20
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-item" data-id="2">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">矿山救援应急预案.docx</div>
+                                <div class="file-meta">
+                                    <i class="bi bi-clock"></i> 2023-06-12
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-item" data-id="3">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-excel"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">2023年第一季度瓦斯检测数据.xlsx</div>
+                                <div class="file-meta">
+                                    <i class="bi bi-clock"></i> 2023-04-05
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-item" data-id="4">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">矿井瓦斯治理技术规范.pdf</div>
+                                <div class="file-meta">
+                                    <i class="bi bi-clock"></i> 2022-11-18
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-item" data-id="5">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-richtext"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">通风系统优化方案.rtf</div>
+                                <div class="file-meta">
+                                    <i class="bi bi-clock"></i> 2023-03-27
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-item" data-id="6">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">顶板监测技术指南.pdf</div>
+                                <div class="file-meta">
+                                    <i class="bi bi-clock"></i> 2023-01-15
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-item" data-id="7">
+                            <div class="file-icon">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div class="file-info">
+                                <div class="file-name">智能化开采技术研究.docx</div>
+                                <div class="file-meta">
+                                    <i class="bi bi-clock"></i> 2023-07-02
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧内容区 -->
+                <div class="right-content">
+                    <div class="document-view" id="document-view">
+                        <!-- 初始状态下的提示 -->
+                        <div class="document-placeholder" id="document-placeholder">
+                            <i class="bi bi-journal-text"></i>
+                            <h3>欢迎使用矿山知识库</h3>
+                            <p>从左侧选择一个文档查看详情，或上传新的文档到知识库。您也可以直接在下方输入框中提问，系统将基于所有知识文档为您解答。</p>
+                            <button class="placeholder-action" id="upload-action">
+                                <i class="bi bi-cloud-upload"></i> 上传新文档
+                            </button>
+                        </div>
+                        
+                        <!-- 文档内容，初始隐藏 -->
+                        <div class="document-content" id="document-content" style="display: none;">
+                            <div class="document-header">
+                                <div>
+                                    <h2 class="document-title" id="doc-title">煤矿安全生产规定</h2>
+                                    <div class="document-meta">
+                                        <span><i class="bi bi-calendar"></i> 2023-05-20</span>
+                                        <span><i class="bi bi-file-earmark"></i> PDF 文档</span>
+                                        <span><i class="bi bi-person"></i> 中国煤炭安全监察局</span>
+                                    </div>
+                                </div>
+                                <div class="document-actions">
+                                    <button class="action-btn" title="下载文档">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="action-btn" title="分享文档">
+                                        <i class="bi bi-share"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="document-text" id="doc-text">
+                                <!-- 文档内容将通过 JS 动态加载 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 查询输入区 -->
+                    <div class="query-container">
+                        <div class="query-input-box">
+                            <input type="text" class="query-input" id="query-input" placeholder="输入您的问题，基于知识库为您解答...">
+                            <button class="query-button" id="query-button">
+                                <i class="bi bi-lightning"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 查询答案区域，初始隐藏 -->
+                        <div class="answer-box" id="answer-box" style="display: none;">
+                            <div class="answer-title">
+                                <i class="bi bi-robot"></i> 智能解答
+                            </div>
+                            <div class="answer-content" id="answer-content">
+                                <!-- 答案内容将通过 JS 动态加载 -->
+                            </div>
+                            <div class="answer-sources">
+                                <div class="answer-sources-title">
+                                    <i class="bi bi-journal-text"></i> 参考来源
+                                </div>
+                                <div id="answer-sources-list">
+                                    <!-- 来源列表将通过 JS 动态加载 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加 Markdown 解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.2.4/marked.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // API Key
+            const apiKey = "sk-bbee92c6844c4ed3a9b30eb9864e9c99";
+            let isProcessing = false;
+            
+            // 初始化 Marked
+            marked.setOptions({
+                gfm: true, // GitHub 风格 Markdown
+                breaks: true, // 允许换行符转换为 <br>
+                headerIds: true, // 自动为标题生成 ID
+                smartLists: true // 更智能的列表行为
+            });
+            
+            // DOM 元素
+            const leftPanel = document.getElementById('left-panel');
+            const collapseBtn = document.getElementById('collapse-btn');
+            const uploadBtn = document.getElementById('upload-btn');
+            const uploadAction = document.getElementById('upload-action');
+            const fileItems = document.querySelectorAll('.file-item');
+            const documentPlaceholder = document.getElementById('document-placeholder');
+            const documentContent = document.getElementById('document-content');
+            const docTitle = document.getElementById('doc-title');
+            const docText = document.getElementById('doc-text');
+            const homeButton = document.getElementById('home-button');
+            const chatTab = document.getElementById('chat-tab');
+            const knowledgeTab = document.getElementById('knowledge-tab');
+            const emailContact = document.getElementById('email-contact');
+            const queryInput = document.getElementById('query-input');
+            const queryButton = document.getElementById('query-button');
+            const answerBox = document.getElementById('answer-box');
+            const answerContent = document.getElementById('answer-content');
+            const answerSourcesList = document.getElementById('answer-sources-list');
+            const searchInput = document.getElementById('search-input');
+            
+            // 模拟文档数据
+            const documents = {
+                1: {
+                    title: "煤矿安全生产规定",
+                    date: "2023-05-20",
+                    type: "PDF 文档",
+                    author: "中国煤炭安全监察局",
+                    content: `
+# 煤矿安全生产规定
+
+## 第一章 总则
+
+### 第一条
+为了加强煤矿安全生产工作，防止和减少伤亡事故，保障煤矿职工的安全与健康，促进煤炭工业的发展，制定本规定。
+
+### 第二条
+在中华人民共和国领域内从事煤炭生产活动的煤矿企业，必须遵守本规定。
+
+### 第三条
+煤矿企业必须坚持"安全第一，预防为主"的方针，加强安全生产管理，建立健全各级领导负责制和群防群治制，采取有效措施，改善职工劳动条件，保证安全生产。
+
+## 第二章 煤矿安全管理
+
+### 第四条
+煤矿企业的主要负责人对本企业的安全生产工作全面负责。煤矿企业应当设置安全生产管理机构，配备专职安全生产管理人员。
+
+### 第五条
+煤矿企业必须建立健全安全生产责任制，明确各级各类人员的安全生产职责，并对其履行情况进行考核。
+
+### 第六条
+煤矿企业必须对职工进行安全教育和培训，未经安全教育和培训的人员，不得上岗作业。特种作业人员必须按照国家有关规定经专门的安全技术培训并取得特种作业操作资格证书，方可上岗作业。
+
+## 第三章 煤矿瓦斯防治
+
+### 第七条
+煤矿企业应当加强瓦斯监测与防治工作，建立健全瓦斯防治责任制和管理制度，采取有效措施预防瓦斯事故。
+
+### 第八条
+高瓦斯矿井和煤与瓦斯突出矿井应当建立瓦斯抽采系统，实施瓦斯抽采。
+
+### 第九条
+煤矿企业应当加强通风管理，保证矿井通风系统可靠、稳定、便于调节。采掘工作面的风量、风速、风质必须符合国家标准或者行业标准的规定。
+
+## 第四章 煤矿防灾减灾
+
+### 第十条
+煤矿企业应当制定防灾计划和应急预案，建立专业救护队或者兼职救护队，配备必要的防灾救灾装备和物资，并定期组织演练。
+
+### 第十一条
+煤矿企业应当加强水害防治工作，严格执行探放水制度，采取有效措施防治水害事故。
+
+### 第十二条
+煤矿企业应当加强顶板管理，采取可靠的支护措施，防止冒顶片帮事故发生。
+
+## 第五章 罚则
+
+### 第十三条
+违反本规定，有下列行为之一的，由煤矿安全监察机构责令限期改正，可以处以罚款：
+1. 未建立安全生产责任制或者安全生产责任制不健全的；
+2. 未对职工进行安全教育和培训的；
+3. 特种作业人员未取得特种作业操作资格证书上岗作业的；
+4. 未建立健全瓦斯防治责任制和管理制度的；
+5. 未制定防灾计划和应急预案，或者未配备必要的防灾救灾装备和物资的。
+
+## 第六章 附则
+
+### 第十四条
+本规定自公布之日起施行。
+                    `
+                },
+                2: {
+                    title: "矿山救援应急预案",
+                    date: "2023-06-12",
+                    type: "Word 文档",
+                    author: "煤矿安全生产应急管理部",
+                    content: `
+# 矿山救援应急预案
+
+## 1. 总则
+
+### 1.1 编制目的
+为有效预防和及时控制、消除矿山生产安全事故，最大限度地减少人员伤亡和财产损失，保障矿山从业人员的生命安全，维护矿山正常的生产秩序，特制定本应急预案。
+
+### 1.2 编制依据
+本预案依据《中华人民共和国安全生产法》、《中华人民共和国矿山安全法》、《煤矿安全规程》等法律法规制定。
+
+### 1.3 适用范围
+本预案适用于本矿山范围内各类生产安全事故的应急救援工作。
+
+## 2. 应急组织机构与职责
+
+### 2.1 应急救援指挥部
+矿山成立应急救援指挥部，由矿长任总指挥，分管安全生产的副矿长任副总指挥，成员由各部门负责人组成。
+
+### 2.2 职责
+- 总指挥：负责统一领导、指挥矿山的应急救援工作，审定矿山应急救援预案。
+- 副总指挥：协助总指挥工作，总指挥不在时代行总指挥职责。
+- 各成员单位：按照职责分工，负责相关应急救援工作。
+
+## 3. 预防与预警
+
+### 3.1 危险源监控
+建立健全危险源监控体系，对重大危险源进行辨识、登记，建立档案，进行定期检测、检查和监控，及时发现和消除事故隐患。
+
+### 3.2 预警行动
+当获悉可能导致事故的信息后，应急救援指挥部应当根据事态发展，做出预警决定并发布预警信息。预警级别分为一级（特别重大）、二级（重大）、三级（较大）和四级（一般）四个等级。
+
+## 4. 应急响应
+
+### 4.1 信息报告
+事故发生后，现场人员应当立即向矿调度室报告。调度室接到报告后，立即向矿应急救援指挥部报告，并按规定向上级主管部门和地方政府报告。
+
+### 4.2 先期处置
+事故发生后，事故现场有关人员应当立即采取措施控制事态发展，组织自救互救，防止事故扩大。
+
+### 4.3 应急处置
+根据事故性质、危害程度、范围、风险分析判断结果，矿应急救援指挥部启动相应级别的应急响应，组织开展应急救援工作。
+
+## 5. 应急保障
+
+### 5.1 通信与信息保障
+建立健全应急通信系统，确保应急期间通信联络和信息传递畅通。
+
+### 5.2 应急队伍保障
+建立专职矿山救护队或兼职救护队，配备必要的应急救援装备和物资。
+
+### 5.3 物资装备保障
+建立应急物资储备制度，储备必要的应急物资和装备。
+
+### 5.4 技术保障
+建立专家组，为应急救援决策和行动提供技术支持。
+
+## 6. 后期处置
+
+### 6.1 善后处置
+做好受害及受影响人员的安置工作，积极开展矿山事故灾难的善后处置工作。
+
+### 6.2 事故调查
+配合有关部门对事故进行调查，查明事故原因，总结经验教训，提出防范措施。
+
+### 6.3 恢复重建
+积极做好灾后恢复重建工作，尽快恢复正常生产秩序。
+
+## 7. 附则
+
+### 7.1 预案管理与更新
+本预案由矿安全生产部门负责管理，根据实际情况变化及时修订完善。
+
+### 7.2 预案实施
+本预案自发布之日起实施。
+                    `
+                },
+                // 可以继续添加更多文档...
+            };
+            
+            // 初始化
+            initializeInterface();
+            
+            // 初始化界面
+            function initializeInterface() {
+                // 收起/展开左侧面板
+                collapseBtn.addEventListener('click', function() {
+                    leftPanel.classList.toggle('collapsed');
+                    this.querySelector('i').classList.toggle('bi-chevron-left');
+                    this.querySelector('i').classList.toggle('bi-chevron-right');
+                });
+                
+                // 上传按钮点击事件
+                uploadBtn.addEventListener('click', function() {
+                    alert('文档上传功能开发中...');
+                });
+                
+                uploadAction.addEventListener('click', function() {
+                    alert('文档上传功能开发中...');
+                });
+                
+                // 文件项点击事件
+                fileItems.forEach(fileItem => {
+                    fileItem.addEventListener('click', function() {
+                        // 移除所有选中状态
+                        fileItems.forEach(item => item.classList.remove('selected'));
+                        
+                        // 添加选中状态
+                        this.classList.add('selected');
+                        
+                        // 获取文档ID并加载
+                        const docId = this.getAttribute('data-id');
+                        loadDocument(docId);
+                    });
+                });
+                
+                // 首页按钮点击事件
+                homeButton.addEventListener('click', function() {
+                    window.location.href = 'index.html';
+                });
+                
+                // 聊天标签点击事件
+                chatTab.addEventListener('click', function() {
+                    window.location.href = 'index.html';
+                });
+                
+                // 知识库标签点击事件
+                knowledgeTab.addEventListener('click', function() {
+                    // 已在知识库页面，不做操作
+                });
+                
+                // 邮箱联系按钮
+                emailContact.addEventListener('click', function() {
+                    window.location.href = 'mailto:yiwei.ru@cripac.ia.ac.cn';
+                });
+                
+                // 查询按钮点击事件
+                queryButton.addEventListener('click', handleQuery);
+                
+                // 回车键发送查询
+                queryInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !isProcessing && queryInput.value.trim() !== '') {
+                        handleQuery();
+                    }
+                });
+                
+                // 搜索文档
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    
+                    fileItems.forEach(item => {
+                        const fileName = item.querySelector('.file-name').textContent.toLowerCase();
+                        
+                        if (fileName.includes(searchTerm)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+            
+            // 加载文档
+            function loadDocument(docId) {
+                if (documents[docId]) {
+                    const doc = documents[docId];
+                    
+                    // 隐藏占位区域，显示文档内容
+                    documentPlaceholder.style.display = 'none';
+                    documentContent.style.display = 'block';
+                    
+                    // 设置文档标题和元数据
+                    docTitle.textContent = doc.title;
+                    
+                    // 将Markdown内容转换为HTML
+                    docText.innerHTML = marked.parse(doc.content);
+                    
+                    // 更新文档元数据
+                    const metaElements = document.querySelectorAll('.document-meta span');
+                    if (metaElements.length >= 3) {
+                        metaElements[0].innerHTML = `<i class="bi bi-calendar"></i> ${doc.date}`;
+                        metaElements[1].innerHTML = `<i class="bi bi-file-earmark"></i> ${doc.type}`;
+                        metaElements[2].innerHTML = `<i class="bi bi-person"></i> ${doc.author}`;
+                    }
+                }
+            }
+            
+            // 处理查询
+            function handleQuery() {
+                if (isProcessing || queryInput.value.trim() === '') return;
+                
+                const query = queryInput.value.trim();
+                
+                // 显示加载效果
+                answerBox.style.display = 'block';
+                answerContent.innerHTML = '<div><span class="loading-spinner"></span>正在查询相关信息...</div>';
+                answerSourcesList.innerHTML = '';
+                
+                // 设置处理状态
+                isProcessing = true;
+                queryButton.disabled = true;
+                
+                // 调用 DeepSeek API
+                callDeepSeekAPI(query);
+            }
+            
+            // 调用 DeepSeek API 处理查询
+            async function callDeepSeekAPI(query) {
+                try {
+                    // 创建系统提示信息
+                    const systemMessage = {
+                        role: 'system',
+                        content: `你是中科院自动化所开发的矿山知识库助手，专门回答用户关于矿山安全、采矿技术等问题。
+                        请基于用户的问题，从文档库中提取相关信息，提供准确、专业的回答。
+                        使用Markdown格式回复，使内容更易于阅读。回答要简明扼要但内容充实。
+                        始终注明信息来源，并引用相关文档中的具体段落。`
+                    };
+                    
+                    // 准备用户查询
+                    const userMessage = {
+                        role: 'user',
+                        content: query
+                    };
+                    
+                    // 准备请求体
+                    const requestBody = {
+                        model: 'deepseek-chat',
+                        messages: [systemMessage, userMessage],
+                        stream: false
+                    };
+                    
+                    // 发送请求
+                    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + apiKey
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || '调用 API 失败');
+                    }
+                    
+                    const data = await response.json();
+                    const assistantMessage = data.choices[0].message.content;
+                    
+                    // 显示查询结果
+                    displayQueryResult(assistantMessage);
+                    
+                } catch (error) {
+                    console.error('API 调用错误:', error);
+                    answerContent.innerHTML = `<div class="error-message">⚠️ 查询出错: ${error.message}</div>`;
+                    
+                } finally {
+                    isProcessing = false;
+                    queryButton.disabled = false;
+                }
+            }
+            
+            // 显示查询结果
+            function displayQueryResult(result) {
+                // 使用Markdown渲染回答内容
+                answerContent.innerHTML = marked.parse(result);
+                
+                // 模拟添加来源信息
+                answerSourcesList.innerHTML = `
+                    <div class="source-item">
+                        <div class="source-number">1</div>
+                        <div class="source-text">煤矿安全生产规定 - 第三章 煤矿瓦斯防治</div>
+                    </div>
+                    <div class="source-item">
+                        <div class="source-number">2</div>
+                        <div class="source-text">矿山救援应急预案 - 第4.3节 应急处置</div>
+                    </div>
+                `;
+            }
+            
+            // HTML 转义函数，防止 XSS
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        });
+    </script>
+</body>
+</html>
